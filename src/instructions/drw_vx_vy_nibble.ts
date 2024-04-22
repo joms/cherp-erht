@@ -2,24 +2,22 @@ import { CPU } from "../CPU";
 import { getArguments } from "./getArguments";
 
 export const DRW_VX_VY_NIBBLE = (opcode: number, cpu: CPU) => {
-  const [xCoord, yCoord] = getArguments(opcode);
+  const [x, y] = getArguments(opcode);
 
   const width = 8;
   const height = opcode & 0xf;
 
   cpu.registers[0xf] = 0;
 
-  for (let y = 0; y < height; y++) {
-    let sprite = cpu.memory[cpu.index + y];
+  for (let row = 0; row < height; row++) {
+    let sprite = cpu.memory[cpu.index + row];
 
-    for (let x = 0; x < width; x++) {
-      if ((sprite & 0x80) !== 0) {
-        if (
-          cpu.renderer.setPixel(
-            cpu.registers[xCoord] + x,
-            cpu.registers[yCoord] + y,
-          )
-        ) {
+    for (let col = 0; col < width; col++) {
+      if ((sprite & 0x80) > 0) {
+        const xCoord = cpu.registers[x] + col;
+        const yCoord = cpu.registers[y] + row;
+
+        if (cpu.renderer.setPixel(xCoord, yCoord)) {
           cpu.registers[0xf] = 1;
         }
       }
