@@ -36,7 +36,6 @@ export class Renderer {
   public setPixel(x: number, y: number) {
     const px = x % this.cols;
     const py = y % this.rows;
-    console.log({ x, y, px, py });
 
     const pixelLocation = px + py * this.cols;
 
