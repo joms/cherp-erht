@@ -181,7 +181,6 @@ export class CPU {
         LD_VX_BYTE(opcode, this);
         break;
 
-      // ADD
       case 0x7000:
         ADD_VX_BYTE(opcode, this);
         break;

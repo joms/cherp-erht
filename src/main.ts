@@ -42,7 +42,7 @@ class Chip8 {
     this.renderer.render();
     this.lastStep = Date.now();
     this.cpu.loadSpritesIntoMemory();
-    this.cpu.loadRom("SPLASH_SCREEN_TEST");
+    this.cpu.loadRom("IBM_TEST");
 
     requestAnimationFrame(this.step.bind(this));
   }
