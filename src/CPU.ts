@@ -53,6 +53,7 @@ export class CPU {
     this.sp = -1;
     this.soundTimer = 0;
     this.delayTimer = 0;
+    this.index = 0;
 
     this.memory = new Uint8Array(4096);
     this.registers = new Uint8Array(16);
