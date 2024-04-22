@@ -114,69 +114,23 @@ export class CPU {
   }
 
   executeInstruction(opcode: number) {
-    const x = (opcode & 0x0f00) >> 8;
-    const y = (opcode & 0x00f0) >> 4;
-
     switch (opcode & 0xf000) {
       case 0x0000:
         switch (opcode) {
-          // CLS
           case 0x00e0:
             CLS(this);
             break;
 
-          // RET
           case 0x00ee:
             RET(this);
             break;
         }
         break;
 
-      // JP addr
       case 0x1000:
         JP_ADDR(opcode, this);
         break;
 
-      // CALL
-      case 0x2000:
-        if (this.sp === 15) {
-          this.paused = true;
-          throw new Error("Stack overflow");
-        }
-
-        this.sp += 1;
-        this.stack[this.sp] = this.pc;
-        this.pc = opcode & 0xfff;
-        break;
-
-      // SE
-      case 0x3000:
-        if (this.registers[x] === (opcode & 0xff)) {
-          this.incrementPc();
-        }
-
-        this.incrementPc();
-        break;
-
-      // SNE
-      case 0x4000:
-        if (this.registers[x] !== (opcode & 0xff)) {
-          this.incrementPc();
-        }
-
-        this.incrementPc();
-        break;
-
-      // SE
-      case 0x5000:
-        if (this.registers[x] === this.registers[y]) {
-          this.incrementPc();
-        }
-
-        this.incrementPc();
-        break;
-
-      // LD
       case 0x6000:
         LD_VX_BYTE(opcode, this);
         break;
@@ -185,197 +139,12 @@ export class CPU {
         ADD_VX_BYTE(opcode, this);
         break;
 
-      case 0x8000:
-        switch (opcode & 0xf) {
-          // LD
-          case 0x0:
-            this.registers[x] = this.registers[y];
-            this.incrementPc();
-            break;
-          // OR
-          case 0x1:
-            this.registers[x] |= this.registers[y];
-            this.incrementPc();
-            break;
-          // AND
-          case 0x2:
-            this.registers[x] &= this.registers[y];
-            this.incrementPc();
-            break;
-          // XOR
-          case 0x3:
-            this.registers[x] ^= this.registers[y];
-            this.incrementPc();
-            break;
-          // ADD
-          case 0x4:
-            const sum = this.registers[x] + this.registers[y];
-            if (sum > 0xff) {
-              this.registers[0xf] = 1;
-            } else {
-              this.registers[0xf] = 0;
-            }
-            this.registers[x] = sum;
-            this.incrementPc();
-            break;
-          // SUB
-          case 0x5:
-            if (this.registers[x] > this.registers[y]) {
-              this.registers[0xf] = 1;
-            } else {
-              this.registers[0xf] = 0;
-            }
-            this.registers[x] -= this.registers[y];
-            this.incrementPc();
-            break;
-          // SHR
-          case 0x6:
-            this.registers[0xf] = this.registers[x] & 0x1;
-            this.registers[x] >>= 1;
-            this.incrementPc();
-            break;
-          // SUBN
-          case 0x7:
-            if (this.registers[y] > this.registers[x]) {
-              this.registers[0xf] = 1;
-            } else {
-              this.registers[0xf] = 0;
-            }
-            this.registers[x] = this.registers[y] - this.registers[x];
-            this.incrementPc();
-            break;
-          // SHL
-          case 0xe:
-            this.registers[0xf] = this.registers[x] & 0x80;
-            this.registers[x] <<= 1;
-            this.incrementPc();
-            break;
-        }
-        break;
-
-      // SNE
-      case 0x9000:
-        if (this.registers[x] !== this.registers[y]) {
-          this.incrementPc();
-        }
-        this.incrementPc();
-        break;
-
-      // LD
       case 0xa000:
         LD_I_ADDR(opcode, this);
         break;
 
-      // JP
-      case 0xb000:
-        this.pc = (opcode & 0xfff) + this.registers[0];
-        break;
-
-      // RND
-      case 0xc000:
-        const rnd = Math.floor(Math.random() * 0xff);
-        this.registers[x] = rnd & (opcode & 0xff);
-        this.incrementPc();
-        break;
-
-      // DRW
       case 0xd000:
         DRW_VX_VY_NIBBLE(opcode, this);
-        break;
-
-      // SKP
-      case 0x9e:
-        if (this.keyboard.isKeyPressed(this.registers[x])) {
-          this.incrementPc();
-        }
-        this.incrementPc();
-        break;
-
-      // SKNP
-      case 0xa1:
-        if (!this.keyboard.isKeyPressed(this.registers[x])) {
-          this.incrementPc();
-        }
-        this.incrementPc();
-        break;
-
-      // LD
-      case 0x07:
-        this.registers[x] = this.delayTimer;
-        this.incrementPc();
-        break;
-
-      // LD
-      case 0x0a:
-        this.paused = true;
-
-        this.keyboard.onNextKeyPress = (key) => {
-          this.registers[x] = key;
-          this.paused = false;
-        };
-
-        this.incrementPc();
-        break;
-
-      // LD
-      case 0x15:
-        this.delayTimer = this.registers[x];
-        this.incrementPc();
-        break;
-
-      // LD
-      case 0x18:
-        this.soundTimer = this.registers[x];
-        this.incrementPc();
-        break;
-
-      // ADD
-      case 0x1e:
-        this.index += this.registers[x];
-        this.incrementPc();
-        break;
-
-      // LD
-      case 0x29:
-        if (this.registers[x] > 0xf) {
-          this.paused = true;
-          throw new Error("Invalid digit");
-        }
-
-        this.index = this.registers[x] * 5;
-        this.incrementPc();
-        break;
-
-      // LD
-      case 0x33:
-        this.memory[this.index] = parseInt(
-          (this.registers[x] / 100).toString(),
-        );
-        this.memory[this.index + 1] = parseInt(
-          ((this.registers[x] % 100) / 10).toString(),
-        );
-        this.memory[this.index + 2] = parseInt(
-          (this.registers[x] % 10).toString(),
-        );
-        this.incrementPc();
-        break;
-
-      // LD
-      case 0x55:
-        for (let registerIndex = 0; registerIndex <= x; registerIndex++) {
-          this.memory[this.index + registerIndex] =
-            this.registers[registerIndex];
-        }
-        this.incrementPc();
-        break;
-
-      // LD
-      case 0x65:
-        for (let registerIndex = 0; registerIndex <= x; registerIndex++) {
-          this.registers[registerIndex] =
-            this.memory[this.index + registerIndex];
-        }
-        this.incrementPc();
         break;
 
       default:
