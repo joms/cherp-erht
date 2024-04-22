@@ -27,6 +27,4 @@ export const DRW_VX_VY_NIBBLE = (opcode: number, cpu: CPU) => {
       sprite <<= 1;
     }
   }
-
-  cpu.incrementPc();
 };

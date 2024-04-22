@@ -82,6 +82,7 @@ export class CPU {
       }
 
       const opcode = (this.memory[this.pc] << 8) | this.memory[this.pc + 1];
+      this.incrementPc();
       this.executeInstruction(opcode);
     }
 
